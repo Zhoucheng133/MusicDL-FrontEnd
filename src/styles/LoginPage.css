@@ -1,0 +1,115 @@
+.login-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 32px 18px;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(37, 99, 235, 0.12), transparent 32%),
+    radial-gradient(circle at 84% 16%, rgba(20, 184, 166, 0.14), transparent 30%),
+    linear-gradient(145deg, #f8fafc 0%, #eef4f8 100%);
+}
+
+.login-panel {
+  width: min(100%, 430px);
+  padding: 28px 34px 32px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.11);
+}
+
+.login-brand-mark {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  place-items: center;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.login-brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.login-heading {
+  margin-bottom: 15px;
+}
+
+.login-eyebrow {
+  margin: 0 0 8px;
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.login-heading h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 32px;
+  line-height: 1.18;
+}
+
+.login-heading p:last-child {
+  margin: 10px 0 0;
+  color: #64748b;
+  line-height: 1.65;
+}
+
+.login-form {
+  display: grid;
+  gap: 13px;
+}
+
+.login-form-control {
+  display: grid;
+  gap: 8px;
+}
+
+.login-form-control span {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.login-form .input {
+  width: 100%;
+}
+
+.login-error {
+  margin: 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 8px;
+  color: #b91c1c;
+  background: #fef2f2;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.login-form .btn {
+  min-height: 48px;
+  margin-top: 10px;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+@media (max-width: 520px) {
+  .login-shell {
+    align-items: start;
+    padding-top: 22px;
+  }
+
+  .login-panel {
+    padding: 22px 20px 26px;
+  }
+
+  .login-heading h1 {
+    font-size: 28px;
+  }
+}
