@@ -146,10 +146,5 @@
         {isSubmitting ? '注册中...' : '注册'}
       </button>
     </form>
-
-    <p class="register-switch">
-      已有账号？
-      <a href="/login" onclick={goToLogin}>返回登录</a>
-    </p>
   </section>
 </main>
