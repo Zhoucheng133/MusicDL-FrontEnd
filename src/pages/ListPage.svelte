@@ -199,16 +199,26 @@
       modal?.close()
     }
   }
+
+  function logout() {
+    localStorage.removeItem('token')
+    window.location.reload()
+  }
 </script>
 
 <main class="list-page">
   <section class="list-panel">
     <header class="list-header">
       <h1>列表</h1>
-      <nav class="list-tabs" aria-label="页面导航">
-        <button class="list-tab" type="button" onclick={goToSearch} disabled={Boolean(downloadingSong)}>搜索</button>
-        <button class="list-tab active" type="button">列表</button>
-      </nav>
+      <div class="flex items-center gap-5">
+        <nav class="list-tabs" aria-label="页面导航">
+          <button class="list-tab" type="button" onclick={goToSearch} disabled={Boolean(downloadingSong)}>搜索</button>
+          <button class="list-tab active" type="button">列表</button>
+        </nav>
+        <button class="btn btn-square" aria-label="注销" onclick={logout}>
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
     </header>
 
     {#if isLoading}

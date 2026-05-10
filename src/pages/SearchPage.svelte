@@ -274,16 +274,26 @@
       downloadMessage = ''
     }
   }
+
+  function logout() {
+    localStorage.removeItem('token')
+    window.location.reload()
+  }
 </script>
 
 <main class="search-page">
   <section class="search-panel">
     <header class="search-header">
       <h1>搜索</h1>
-      <nav class="search-tabs" aria-label="页面导航">
-        <button class="search-tab active" type="button">搜索</button>
-        <button class="search-tab" type="button" onclick={goToList} disabled={isDownloading}>列表</button>
-      </nav>
+      <div class="flex items-center gap-5">
+        <nav class="search-tabs" aria-label="页面导航">
+          <button class="search-tab active" type="button">搜索</button>
+          <button class="search-tab" type="button" onclick={goToList} disabled={isDownloading}>列表</button>
+        </nav>
+        <button class="btn btn-square" aria-label="注销" onclick={logout}>
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
     </header>
 
     <form class="search-form" onsubmit={handleSearch}>
