@@ -82,6 +82,11 @@
   border-radius: 8px;
 }
 
+.song-delete {
+  min-width: 72px;
+  border-radius: 8px;
+}
+
 .list-state {
   display: grid;
   min-height: 180px;

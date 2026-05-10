@@ -19,6 +19,8 @@
   let errorMessage = $state('')
   let isLoading = $state(true)
   let downloadingSong = $state('')
+  let deletingSong = $state('')
+  let confirmDeleteSong = $state('')
 
   onMount(() => {
     void loadList()
@@ -145,6 +147,58 @@
       downloadingSong = ''
     }
   }
+
+  function handleDelete(song: string) {
+    if (downloadingSong || deletingSong) {
+      return
+    }
+
+    confirmDeleteSong = song
+
+    const modal = document.getElementById('delete_modal') as HTMLDialogElement | null
+    modal?.showModal()
+  }
+
+  async function confirmDelete() {
+    if (!confirmDeleteSong) {
+      return
+    }
+
+    const song = confirmDeleteSong
+    const { artist, name } = parseSong(song)
+
+    deletingSong = song
+    errorMessage = ''
+
+    try {
+      const response = await axios.delete<ListResponse>('/api/del', {
+        headers: getTokenHeader(),
+        params: {
+          artist,
+          name,
+        },
+      })
+
+      if (!response.data.ok) {
+        errorMessage =
+          typeof response.data.message === 'string'
+            ? response.data.message
+            : '删除失败'
+
+        return
+      }
+
+      songs = songs.filter((item) => item !== song)
+    } catch {
+      errorMessage = '删除失败，请稍后重试'
+    } finally {
+      deletingSong = ''
+      confirmDeleteSong = ''
+
+      const modal = document.getElementById('delete_modal') as HTMLDialogElement | null
+      modal?.close()
+    }
+  }
 </script>
 
 <main class="list-page">
@@ -168,14 +222,24 @@
         {#each songs as song}
           <article class="song-list-item">
             <span>{song}</span>
-            <button
-              class="btn btn-outline song-download"
-              type="button"
-              onclick={() => handleDownload(song)}
-              disabled={Boolean(downloadingSong)}
-            >
-              {downloadingSong === song ? '下载中...' : '下载'}
-            </button>
+            <div class="flex gap-2">
+              <button
+                class="btn btn-outline song-download"
+                type="button"
+                onclick={() => handleDownload(song)}
+                disabled={Boolean(downloadingSong)}
+              >
+                {downloadingSong === song ? '下载中...' : '下载'}
+              </button>
+              <button
+                class="btn btn-outline btn-error song-delete"
+                type="button"
+                onclick={() => handleDelete(song)}
+                disabled={Boolean(downloadingSong || deletingSong)}
+              >
+                {deletingSong === song ? '删除中...' : '删除'}
+              </button>
+            </div>
           </article>
         {/each}
       </section>
@@ -184,3 +248,34 @@
     {/if}
   </section>
 </main>
+
+<dialog id="delete_modal" class="modal">
+  <div class="modal-box">
+    <h3 class="text-lg font-bold">确认删除</h3>
+
+    <p class="py-4 break-all">
+      确定要删除：
+      <span class="font-semibold">{confirmDeleteSong}</span>
+      吗？
+    </p>
+
+    <div class="modal-action">
+      <form method="dialog">
+        <button
+          class="btn"
+          disabled={Boolean(deletingSong)}
+        >
+          取消
+        </button>
+      </form>
+
+      <button
+        class="btn btn-error"
+        onclick={confirmDelete}
+        disabled={Boolean(deletingSong)}
+      >
+        {deletingSong ? '删除中...' : '确认删除'}
+      </button>
+    </div>
+  </div>
+</dialog>
