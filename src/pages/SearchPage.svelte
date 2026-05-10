@@ -321,9 +321,11 @@
     {#if isDownloading}
       <div class="download-progress">
         <div class="download-progress-header">
-          <span>{downloadMessage || '正在下载...'}</span>
+          <span>下载中</span>
           {#if downloadProgress !== null}
             <strong>{Math.min(Math.max(downloadProgress, 0), 100).toFixed(0)}%</strong>
+          {:else}
+            <strong>{downloadMessage || '等待进度...'}</strong>
           {/if}
         </div>
         {#if downloadProgress !== null}
