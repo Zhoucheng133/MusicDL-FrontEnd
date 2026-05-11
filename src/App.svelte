@@ -5,14 +5,10 @@
   import RegisterPage from './pages/RegisterPage.svelte'
   import SearchPage from './pages/SearchPage.svelte'
   import ListPage from './pages/ListPage.svelte'
+  import { apiGetWithRefresh, type ApiResponse } from './lib/api'
 
   type Route = '/' | '/login' | '/register' | '/search' | '/list'
   type AuthRoute = '/search' | '/list'
-
-  interface ApiResponse<T> {
-    ok: boolean
-    message: T
-  }
 
   let currentPath = $state<Route>('/login')
   let isChecking = $state(true)
@@ -93,11 +89,7 @@
         return
       }
 
-      const checkResult = await axios.get<ApiResponse<string>>('/api/check', {
-        headers: {
-          token,
-        },
-      })
+      const checkResult = await apiGetWithRefresh<string>('/api/check')
 
       if (checkResult.data.ok) {
         if (requestId === routeRequestId) {

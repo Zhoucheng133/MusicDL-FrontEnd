@@ -1,6 +1,7 @@
 <script lang="ts">
   import axios from 'axios'
   import { onMount } from 'svelte'
+  import { apiDeleteWithRefresh, apiGetBlobWithRefresh, apiGetWithRefresh } from '../lib/api'
   import '../styles/ListPage.css'
 
   type Route = '/search' | '/list'
@@ -36,12 +37,6 @@
     }
 
     return '列表加载失败，请稍后重试'
-  }
-
-  function getTokenHeader() {
-    return {
-      token: localStorage.getItem('token') ?? '',
-    }
   }
 
   function parseSong(song: string) {
@@ -92,9 +87,7 @@
     isLoading = true
 
     try {
-      const response = await axios.get<ListResponse>('/api/list', {
-        headers: getTokenHeader(),
-      })
+      const response = await apiGetWithRefresh<string[] | string>('/api/list')
 
       if (!response.data.ok) {
         errorMessage = typeof response.data.message === 'string' ? response.data.message : '列表加载失败'
@@ -112,7 +105,7 @@
   }
 
   function goToSearch() {
-    if (downloadingSong) {
+    if (downloadingSong || deletingSong) {
       return
     }
 
@@ -120,7 +113,7 @@
   }
 
   async function handleDownload(song: string) {
-    if (downloadingSong) {
+    if (downloadingSong || deletingSong) {
       return
     }
 
@@ -130,13 +123,11 @@
     downloadingSong = song
 
     try {
-      const response = await axios.get<Blob>('/api/get', {
-        headers: getTokenHeader(),
+      const response = await apiGetBlobWithRefresh('/api/get', {
         params: {
           name,
           artist,
         },
-        responseType: 'blob',
       })
 
       const filename = getFilename(response.headers['content-disposition'], `${artist ? `${artist}-` : ''}${name}`)
@@ -171,8 +162,7 @@
     errorMessage = ''
 
     try {
-      const response = await axios.delete<ListResponse>('/api/del', {
-        headers: getTokenHeader(),
+      const response = await apiDeleteWithRefresh<string[] | string>('/api/del', {
         params: {
           artist,
           name,

@@ -1,6 +1,7 @@
 <script lang="ts">
   import axios from 'axios'
   import { onDestroy } from 'svelte'
+  import { apiGetWithRefresh, apiPostWithRefresh, type ApiResponse } from '../lib/api'
   import '../styles/SearchPage.css'
 
   type Route = '/search' | '/list'
@@ -22,11 +23,6 @@
   interface SearchResponse {
     ok: boolean
     message: SearchResult[] | string
-  }
-
-  interface ApiResponse<T> {
-    ok: boolean
-    message: T
   }
 
   type ProgressMessage =
@@ -78,12 +74,6 @@
     }
 
     return '搜索失败，请稍后重试'
-  }
-
-  function getTokenHeader() {
-    return {
-      token: localStorage.getItem('token') ?? '',
-    }
   }
 
   function formatProgress(message: ProgressMessage) {
@@ -146,9 +136,7 @@
 
   async function checkProgress() {
     try {
-      const response = await axios.get<ApiResponse<ProgressMessage>>('/api/progress', {
-        headers: getTokenHeader(),
-      })
+      const response = await apiGetWithRefresh<ProgressMessage>('/api/progress')
 
       if (!response.data.ok) {
         downloadMessage =
@@ -199,14 +187,11 @@
     hasSearched = true
 
     try {
-      const response = await axios.post<SearchResponse>(
+      const response = await apiPostWithRefresh<SearchResult[] | string>(
         '/api/search',
         {
           keyword: trimmedKeyword,
           client,
-        },
-        {
-          headers: getTokenHeader(),
         },
       )
 
@@ -244,7 +229,7 @@
     isDownloading = true
 
     try {
-      const response = await axios.post<ApiResponse<string>>(
+      const response = await apiPostWithRefresh<string>(
         '/api/download',
         {
           name: item.name,
@@ -253,9 +238,6 @@
           cover: item.cover,
           album: item.album,
           quality: '',
-        },
-        {
-          headers: getTokenHeader(),
         },
       )
 
