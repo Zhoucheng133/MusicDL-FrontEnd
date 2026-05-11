@@ -187,26 +187,50 @@
     hasSearched = true
 
     try {
-      const response = await apiPostWithRefresh<SearchResult[] | string>(
-        '/api/search',
-        {
-          keyword: trimmedKeyword,
-          client,
-        },
+      const token = localStorage.getItem('token') || ''
+      const socket = new WebSocket(
+        `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/api/ws/search?token=${token}`,
       )
 
-      if (!response.data.ok) {
-        errorMessage = typeof response.data.message === 'string' ? response.data.message : '搜索失败'
-        results = []
-        return
+      socket.onopen=()=>{
+        socket.send(JSON.stringify({
+          'keyword': trimmedKeyword,
+          'client': client,
+        }));
       }
 
-      results = Array.isArray(response.data.message) ? response.data.message : []
+      socket.onmessage=function(response){
+        try {
+          const result: SearchResponse = JSON.parse(response.data);
+          if (!result.ok) {
+            errorMessage = typeof result.message === 'string' ? result.message : '搜索失败'
+            results = []
+          } else {
+            results = Array.isArray(result.message) ? result.message : []
+          }
+        } catch (error) {
+          errorMessage = '搜索失败，请稍后重试'
+          results = []
+        } finally {
+          isSearching = false
+          socket.close()
+        }
+      }
+
+      socket.onerror = () => {
+        errorMessage = 'WebSocket 连接失败'
+        results = []
+        isSearching = false
+        socket.close()
+      }
+
+      socket.onclose = () => {
+        isSearching = false
+      }
+      
     } catch (error) {
-      errorMessage = getErrorMessage(error)
+      errorMessage = '搜索失败，请稍后重试'
       results = []
-    } finally {
-      isSearching = false
     }
   }
 
@@ -306,7 +330,7 @@
     {#if isSearching}
       <div class="search-loading">
         <span class="loading loading-spinner loading-sm" aria-label="正在搜索"></span>
-        <span>正在搜索...</span>
+        <span>正在搜索中，可能需要等待一分钟或更久，请不要关闭此页面</span>
       </div>
     {/if}
 
