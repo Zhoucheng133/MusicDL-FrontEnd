@@ -191,8 +191,10 @@
   }
 
   function logout() {
-    localStorage.removeItem('token')
-    window.location.reload()
+    localStorage.removeItem('token');
+    axios.post('/api/logout').then(() => {
+      window.location.href='/login';
+    });
   }
 </script>
 
