@@ -56,12 +56,15 @@
   let hasSearched = $state(false)
   let isSearching = $state(false)
   let isDownloading = $state(false)
+  let isConverting = $state(false)
   let downloadMessage = $state('')
   let downloadProgress = $state<number | null>(null)
   let progressTimer: number | undefined
+  let convertTimer: number | undefined
 
   onDestroy(() => {
     stopProgressPolling()
+    stopConvertPolling()
   })
 
   function getErrorMessage(error: unknown) {
@@ -134,6 +137,58 @@
     }
   }
 
+  function stopConvertPolling() {
+    if (convertTimer !== undefined) {
+      window.clearInterval(convertTimer)
+      convertTimer = undefined
+    }
+  }
+
+  async function checkConvert() {
+    try {
+      const response = await apiGetWithRefresh<boolean | string | { status?: boolean; message?: string }>(
+        '/api/convert',
+      )
+
+      if (!response.data.ok) {
+        return
+      }
+
+      const val = response.data.message
+      let converting = false
+
+      if (typeof val === 'boolean') {
+        converting = val
+      } else if (typeof val === 'string') {
+        converting = /true|1|converting|转码/i.test(val) && !/false|0|idle|完成|结束/i.test(val)
+      } else if (val && typeof val === 'object') {
+        if (typeof val.status === 'boolean') {
+          converting = val.status
+        } else if (typeof val.message === 'string') {
+          converting = /true|1|converting|转码/i.test(val.message)
+        }
+      }
+
+      if (!converting) {
+        stopConvertPolling()
+        isConverting = false
+        isDownloading = false
+        downloadMessage = '转码完成'
+      }
+    } catch {}
+  }
+
+  function startConvertPolling() {
+    stopConvertPolling()
+    isConverting = true
+    downloadMessage = '正在转码...'
+    downloadProgress = null
+    void checkConvert()
+    convertTimer = window.setInterval(() => {
+      void checkConvert()
+    }, 1000)
+  }
+
   async function checkProgress() {
     try {
       const response = await apiGetWithRefresh<ProgressMessage>('/api/progress')
@@ -149,9 +204,8 @@
 
       if (isProgressDone(response.data.message)) {
         stopProgressPolling()
-        isDownloading = false
-        downloadMessage = '下载完成'
         downloadProgress = 100
+        startConvertPolling()
       }
     } catch {
       downloadMessage = '下载进度获取失败'
@@ -340,15 +394,18 @@
     {#if isDownloading}
       <div class="download-progress">
         <div class="download-progress-header">
-          <span>下载中</span>
-          {#if downloadProgress !== null}
+          <span>{isConverting ? '正在转码' : '下载中'}</span>
+          {#if downloadProgress !== null && !isConverting}
             <strong>{Math.min(Math.max(downloadProgress, 0), 100).toFixed(0)}%</strong>
           {:else}
-            <strong>{downloadMessage || '等待进度...'}</strong>
+            <strong>{downloadMessage || (isConverting ? '正在转码...' : '等待进度...')}</strong>
           {/if}
         </div>
-        {#if downloadProgress !== null}
+        {#if downloadProgress !== null && !isConverting}
           <progress class="progress progress-primary" value={Math.min(Math.max(downloadProgress, 0), 100)} max="100">
+          </progress>
+        {:else if isConverting}
+          <progress class="progress progress-primary" max="100">
           </progress>
         {/if}
       </div>
